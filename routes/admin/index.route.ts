@@ -2,6 +2,7 @@ import adminUserRouter from "./admin-user.route"
 import adminAuthRouter from "./admin-auth.route"
 import adminCategoryRouter from "./admin-category.route"
 import adminProductRouter from "./admin-product.route"
+import adminPostRouter from "./admin-post.route"
 
 const adminRoutes = {
   prefix: "/admin/",
@@ -9,6 +10,10 @@ const adminRoutes = {
     {
       path: "users",
       route: adminUserRouter
+    },
+    {
+      path: "posts",
+      route: adminPostRouter
     },
     {
       path: "products",

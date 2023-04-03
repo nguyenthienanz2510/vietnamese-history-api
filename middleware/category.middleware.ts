@@ -2,7 +2,7 @@ import { body, query } from 'express-validator'
 
 const addCategoryRules = () => {
   return [
-    body('name').exists({ checkFalsy: true }).withMessage("Tên không được để trống").isLength({ max: 160 }).withMessage("Tên phải ít hơn 160 kí tự"),
+    body('name').exists({ checkFalsy: true }).withMessage("Tên không được để trống").isLength({ max: 255 }).withMessage("Tên phải ít hơn 255 kí tự"),
   ]
 }
 

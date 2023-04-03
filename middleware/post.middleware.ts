@@ -1,7 +1,7 @@
 import { body, query } from 'express-validator'
 import { isMongoId } from '../utils/validate'
 
-const getProductsRules = () => {
+const getPostsRules = () => {
   return [
     query('page')
       .if((value) => value !== undefined)
@@ -22,7 +22,7 @@ const getProductsRules = () => {
   ]
 }
 
-const getAllProductsRules = () => {
+const getAllPostsRules = () => {
   return [
     query('category')
       .if((value: any) => value !== undefined)
@@ -41,64 +41,40 @@ const getPagesRules = () => {
   ]
 }
 
-const addProductRules = () => {
+const addPostRules = () => {
   return [
-    body('name')
+    body('title')
       .exists({ checkFalsy: true })
       .withMessage('Tiêu đề không được để trống')
       .isLength({ max: 255 })
       .withMessage('Tiêu đề  phải ít hơn 255 kí tự'),
-    body('image')
-      .exists({ checkFalsy: true })
-      .withMessage('image không được để trống')
-      .isLength({ max: 1000 })
-      .withMessage('image  phải ít hơn 1000 kí tự'),
-    body('images')
-      .if((value: any) => value !== undefined)
-      .isArray()
-      .withMessage('images phải dạng string[]'),
-    body('category')
+    body('categories')
       .exists({ checkFalsy: true })
       .withMessage('category không được để trống')
       .isMongoId()
       .withMessage(`category phải là id`),
-    body('price')
-      .if((value: any) => value !== undefined)
-      .isNumeric()
-      .withMessage('price phải ở định dạng number'),
-    body('price_before_discount')
-      .if((value: any) => value !== undefined)
-      .isNumeric()
-      .withMessage('price_before_discount phải ở định dạng number'),
-    body('quantity')
-      .if((value: any) => value !== undefined)
-      .isNumeric()
-      .withMessage('quantity phải ở định dạng number'),
-    body('view')
-      .if((value: any) => value !== undefined)
-      .isNumeric()
-      .withMessage('view phải ở định dạng number'),
-    body('sold')
-      .if((value: any) => value !== undefined)
-      .isNumeric()
-      .withMessage('sold phải ở định dạng number'),
+    body('author')
+      .exists({ checkFalsy: true })
+      .withMessage('author không được để trống')
+      .isMongoId()
+      .withMessage(`author phải là id`),
     body('rating')
       .if((value: any) => value !== undefined)
       .isNumeric()
-      .withMessage('rating phải ở định dạng number'),
+      .withMessage('rating phải ở định dạng number')
   ]
 }
 
-const updateProductRules = () => {
-  return addProductRules()
+const updatePostRules = () => {
+  return addPostRules()
 }
 
-const ProductMiddleware = {
-  addProductRules,
-  updateProductRules,
-  getProductsRules,
+const PostMiddleware = {
+  addPostRules,
+  updatePostRules,
+  getPostsRules,
   getPagesRules,
-  getAllProductsRules,
+  getAllPostsRules,
 }
 
-export default ProductMiddleware
+export default PostMiddleware

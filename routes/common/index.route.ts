@@ -1,5 +1,6 @@
 import commonUserRouter from './common-user.route'
 import commonAuthRouter from './common-auth.route'
+import commonPostRouter from './common-post.route'
 import commonProductRouter from './common-product.route'
 import commonCategoryRouter from './common-category.route'
 
@@ -13,6 +14,10 @@ const commonRoutes = {
     {
       path: '',
       route: commonAuthRouter
+    },
+    {
+      path: 'posts',
+      route: commonPostRouter
     },
     {
       path: 'products',
