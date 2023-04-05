@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { responseSuccess, ErrorHandler } from '../utils/response'
 import { STATUS } from '../constants/status'
+import { LANG } from '../constants/config'
 import { CategoryModel } from '../database/models/category.model'
 import { omitBy } from 'lodash'
 
@@ -28,15 +29,62 @@ const addCategory = async (req: Request, res: Response) => {
   return responseSuccess(res, response)
 }
 
+// const getCategories = async (req: Request, res: Response) => {
+//   const { exclude } = req.query
+//   let condition = exclude ? { _id: { $ne: exclude } } : {}
+//   const categories = await CategoryModel.find(condition)
+//     .select({ __v: 0 })
+//     .lean()
+//   const response = {
+//     message: 'Get categories successfully',
+//     data: categories,
+//   }
+//   return responseSuccess(res, response)
+// }
+
 const getCategories = async (req: Request, res: Response) => {
-  const { exclude } = req.query
-  let condition = exclude ? { _id: { $ne: exclude } } : {}
-  const categories = await CategoryModel.find(condition)
-    .select({ __v: 0 })
-    .lean()
-  const response = {
+  const { lang, exclude } = req.query
+  let condition: any = {}
+  let select: any = { __v: 0 }
+  if (exclude) {
+    condition._id = { $ne: exclude }
+  }
+  let response = {
     message: 'Get categories successfully',
-    data: categories,
+    data: {},
+  }
+
+  if (!lang) {
+    const categories = await CategoryModel.find(condition)
+      .populate('parent')
+      .select({ __v: 0 })
+      .lean()
+    response.data = categories
+  } else if (lang === LANG.DEFAULT) {
+    const categories = await CategoryModel.find(condition)
+      .populate('parent')
+      .select({ __v: 0, translations: 0 })
+      .lean()
+    response.data = categories
+  } else {
+    const categories = await CategoryModel.find(condition)
+      .populate('parent')
+      .select({ __v: 0 })
+      .lean()
+    categories.forEach((category: any) => {
+      category.name =
+        (category.translations &&
+          category.translations[String(lang)] &&
+          category.translations[String(lang)].name) ||
+        ''
+      category.description =
+        (category.translations &&
+          category.translations[String(lang)] &&
+          category.translations[String(lang)].description) ||
+        ''
+      delete category.translations
+    })
+    response.data = categories
   }
   return responseSuccess(res, response)
 }
@@ -70,9 +118,13 @@ const updateCategory = async (req: Request, res: Response) => {
     },
     (value) => value === undefined || value === ''
   )
-  const categoryDB = await CategoryModel.findByIdAndUpdate(req.params.category_id, category, {
-    new: true,
-  })
+  const categoryDB = await CategoryModel.findByIdAndUpdate(
+    req.params.category_id,
+    category,
+    {
+      new: true,
+    }
+  )
     .select({ __v: 0 })
     .lean()
   if (categoryDB) {

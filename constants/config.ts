@@ -15,3 +15,7 @@ export const FOLDERS = {
 }
 
 export const ROUTE_IMAGE = 'images'
+
+export const LANG = {
+  DEFAULT: 'en',
+}
