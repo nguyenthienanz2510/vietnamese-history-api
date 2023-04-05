@@ -2,16 +2,26 @@ import { Request, Response } from 'express'
 import { responseSuccess, ErrorHandler } from '../utils/response'
 import { STATUS } from '../constants/status'
 import { CategoryModel } from '../database/models/category.model'
+import { omitBy } from 'lodash'
 
 const addCategory = async (req: Request, res: Response) => {
-  const name: string = req.body.name
-  const categoryAdd = await new CategoryModel({ name }).save()
+  const form: Category = req.body
+  const { name, description, image, parent, order, translations } = form
+  const category = {
+    name,
+    description,
+    image,
+    parent,
+    order,
+    translations,
+  }
+  const categoryAdd = await new CategoryModel(category).save()
   const response = {
-    message: 'Tạo Category thành công',
+    message: 'Create category successfully',
     data: categoryAdd.toObject({
       transform: (doc, ret, option) => {
         delete ret.__v
-        return ret
+        // return handleThumbPost(ret)
       },
     }),
   }
@@ -25,7 +35,7 @@ const getCategories = async (req: Request, res: Response) => {
     .select({ __v: 0 })
     .lean()
   const response = {
-    message: 'Lấy categories thành công',
+    message: 'Get categories successfully',
     data: categories,
   }
   return responseSuccess(res, response)
@@ -37,32 +47,42 @@ const getCategory = async (req: Request, res: Response) => {
     .lean()
   if (categoryDB) {
     const response = {
-      message: 'Lấy category thành công',
+      message: 'Get category successfully',
       data: categoryDB,
     }
     return responseSuccess(res, response)
   } else {
-    throw new ErrorHandler(STATUS.BAD_REQUEST, 'Không tìm thấy Category')
+    throw new ErrorHandler(STATUS.BAD_REQUEST, 'Category not found')
   }
 }
 
 const updateCategory = async (req: Request, res: Response) => {
-  const { name } = req.body
-  const categoryDB = await CategoryModel.findByIdAndUpdate(
-    req.params.category_id,
-    { name },
-    { new: true }
+  const form: Category = req.body
+  const { name, description, image, parent, order, translations } = form
+  const category = omitBy(
+    {
+      name,
+      description,
+      image,
+      parent,
+      order,
+      translations,
+    },
+    (value) => value === undefined || value === ''
   )
+  const categoryDB = await CategoryModel.findByIdAndUpdate(req.params.category_id, category, {
+    new: true,
+  })
     .select({ __v: 0 })
     .lean()
   if (categoryDB) {
     const response = {
-      message: 'Cập nhật category thành công',
+      message: 'Update category successfully',
       data: categoryDB,
     }
     return responseSuccess(res, response)
   } else {
-    throw new ErrorHandler(STATUS.BAD_REQUEST, 'Không tìm thấy Category')
+    throw new ErrorHandler(STATUS.NOT_FOUND, 'Category not found')
   }
 }
 
@@ -70,9 +90,9 @@ const deleteCategory = async (req: Request, res: Response) => {
   const category_id = req.params.category_id
   const categoryDB = await CategoryModel.findByIdAndDelete(category_id).lean()
   if (categoryDB) {
-    return responseSuccess(res, { message: 'Xóa thành công' })
+    return responseSuccess(res, { message: 'Delete category successfully' })
   } else {
-    throw new ErrorHandler(STATUS.BAD_REQUEST, 'Không tìm thấy Category')
+    throw new ErrorHandler(STATUS.BAD_REQUEST, 'Category not found')
   }
 }
 
