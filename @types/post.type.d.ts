@@ -1,10 +1,18 @@
 interface Post {
   title: string,
-  thumb: string,
   description: string,
   content: string,
+  thumb: string,
   categories: string[],
   author: string,
-  rating: number,
+  likes: number,
+  order: number,
   comments: string[],
+  translations: {
+    vi: {
+      title: string,
+      description: string,
+      content: string,
+    }
+  }
 }

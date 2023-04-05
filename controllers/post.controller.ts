@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { responseSuccess, ErrorHandler } from '../utils/response'
 import { PostModel } from '../database/models/post.model'
 import { STATUS } from '../constants/status'
+import { LANG } from '../constants/config'
 import mongoose from 'mongoose'
 import { isAdmin } from '../utils/validate'
 import { uploadFile } from '../utils/upload'
@@ -35,8 +36,10 @@ const addPost = async (req: Request, res: Response) => {
     content,
     categories,
     author,
-    rating,
+    likes,
+    order,
     comments,
+    translations,
   } = form
   const post = {
     title,
@@ -45,12 +48,14 @@ const addPost = async (req: Request, res: Response) => {
     content,
     categories,
     author,
-    rating,
+    likes,
+    order,
     comments,
+    translations,
   }
   const postAdd = await new PostModel(post).save()
   const response = {
-    message: 'Tạo sản phẩm thành công',
+    message: 'Create post successfully',
     data: postAdd.toObject({
       transform: (doc, ret, option) => {
         delete ret.__v
@@ -65,14 +70,12 @@ const getPosts = async (req: Request, res: Response) => {
   let {
     page = 1,
     limit = 30,
+    lang,
     category,
     exclude,
     sort_by,
     order,
-    rating_filter,
-    price_max,
-    price_min,
-    name,
+    title,
   } = req.query as {
     [key: string]: string | number
   }
@@ -80,24 +83,12 @@ const getPosts = async (req: Request, res: Response) => {
   page = Number(page)
   limit = Number(limit)
   let condition: any = {}
+  let select: any = { __v: 0 }
   if (category) {
     condition.category = category
   }
   if (exclude) {
     condition._id = { $ne: exclude }
-  }
-  if (rating_filter) {
-    condition.rating = { $gte: rating_filter }
-  }
-  if (price_max) {
-    condition.price = {
-      $lte: price_max,
-    }
-  }
-  if (price_min) {
-    condition.price = condition.price
-      ? { ...condition.price, $gte: price_min }
-      : { $gte: price_min }
   }
   if (!ORDER.includes(order as string)) {
     order = ORDER[0]
@@ -105,14 +96,17 @@ const getPosts = async (req: Request, res: Response) => {
   if (!SORT_BY.includes(sort_by as string)) {
     sort_by = SORT_BY[0]
   }
-  if (name) {
-    condition.name = {
-      $regex: name,
+  if (title) {
+    condition.title = {
+      $regex: title,
       $options: 'i',
     }
   }
-  let [posts, totalPosts]: [posts: any, totalPosts: any] =
-    await Promise.all([
+
+  if ( lang && lang === LANG.DEFAULT) {
+    select = { ...select, translations: 0 }
+  } else if (lang && lang !== LANG.DEFAULT) {
+    let [posts, totalPosts]: [posts: any, totalPosts: any] = await Promise.all([
       PostModel.find(condition)
         .populate({
           path: 'category',
@@ -120,14 +114,49 @@ const getPosts = async (req: Request, res: Response) => {
         .sort({ [sort_by]: order === 'desc' ? -1 : 1 })
         .skip(page * limit - limit)
         .limit(limit)
-        .select({ __v: 0, description: 0 })
+        .select(select)
         .lean(),
       PostModel.find(condition).countDocuments().lean(),
     ])
-  posts = posts.map((post) => handleThumbPost(post))
+    posts.forEach((post: any) => {
+      const translation = post.translations[String(lang)]
+      post.title = translation?.title || ''
+      post.description = translation?.description || ''
+      post.content = translation?.content || ''
+      delete post.translations
+    })
+    // posts = posts.map((post) => handleThumbPost(post))
+    const page_size = Math.ceil(totalPosts / limit) || 1
+    const response = {
+      message: 'Get posts successfully',
+      data: {
+        posts,
+        pagination: {
+          page,
+          limit,
+          page_size,
+        },
+      },
+    }
+    return responseSuccess(res, response)
+  }
+
+  let [posts, totalPosts]: [posts: any, totalPosts: any] = await Promise.all([
+    PostModel.find(condition)
+      .populate({
+        path: 'category',
+      })
+      .sort({ [sort_by]: order === 'desc' ? -1 : 1 })
+      .skip(page * limit - limit)
+      .limit(limit)
+      .select(select)
+      .lean(),
+    PostModel.find(condition).countDocuments().lean(),
+  ])
+  // posts = posts.map((post) => handleThumbPost(post))
   const page_size = Math.ceil(totalPosts / limit) || 1
   const response = {
-    message: 'Lấy các sản phẩm thành công',
+    message: 'Get posts successfully',
     data: {
       posts,
       pagination: {
@@ -189,7 +218,8 @@ const updatePost = async (req: Request, res: Response) => {
     content,
     categories,
     author,
-    rating,
+    likes,
+    order,
     comments,
   } = form
   const post = omitBy(
@@ -200,18 +230,15 @@ const updatePost = async (req: Request, res: Response) => {
       content,
       categories,
       author,
-      rating,
+      likes,
+      order,
       comments,
     },
     (value) => value === undefined || value === ''
   )
-  const postDB = await PostModel.findByIdAndUpdate(
-    req.params.post_id,
-    post,
-    {
-      new: true,
-    }
-  )
+  const postDB = await PostModel.findByIdAndUpdate(req.params.post_id, post, {
+    new: true,
+  })
     .select({ __v: 0 })
     .lean()
   if (postDB) {

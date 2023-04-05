@@ -44,8 +44,9 @@ const addCategory = async (req: Request, res: Response) => {
 
 const getCategories = async (req: Request, res: Response) => {
   const { lang, exclude } = req.query
-  let condition: any = {}
-  let select: any = { __v: 0 }
+  const condition: any = {}
+  const select: any = { __v: 0 }
+  let categories
   if (exclude) {
     condition._id = { $ne: exclude }
   }
@@ -55,37 +56,28 @@ const getCategories = async (req: Request, res: Response) => {
   }
 
   if (!lang) {
-    const categories = await CategoryModel.find(condition)
+    categories = await CategoryModel.find(condition)
       .populate('parent')
-      .select({ __v: 0 })
+      .select(select)
       .lean()
-    response.data = categories
   } else if (lang === LANG.DEFAULT) {
-    const categories = await CategoryModel.find(condition)
+    categories = await CategoryModel.find(condition)
       .populate('parent')
-      .select({ __v: 0, translations: 0 })
+      .select({ ...select, translations: 0 })
       .lean()
-    response.data = categories
   } else {
-    const categories = await CategoryModel.find(condition)
+    categories = await CategoryModel.find(condition)
       .populate('parent')
-      .select({ __v: 0 })
+      .select(select)
       .lean()
     categories.forEach((category: any) => {
-      category.name =
-        (category.translations &&
-          category.translations[String(lang)] &&
-          category.translations[String(lang)].name) ||
-        ''
-      category.description =
-        (category.translations &&
-          category.translations[String(lang)] &&
-          category.translations[String(lang)].description) ||
-        ''
+      const translation = category.translations[String(lang)]
+      category.name = translation?.name || ''
+      category.description = translation?.description || ''
       delete category.translations
     })
-    response.data = categories
   }
+  response.data = categories
   return responseSuccess(res, response)
 }
 
