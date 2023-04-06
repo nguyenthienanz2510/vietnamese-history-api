@@ -7,6 +7,7 @@ interface Post {
   author: string,
   likes: number,
   order: number,
+  publish: boolean,
   comments: string[],
   translations: {
     vi: {

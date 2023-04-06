@@ -38,6 +38,7 @@ const addPost = async (req: Request, res: Response) => {
     author,
     likes,
     order,
+    publish,
     comments,
     translations,
   } = form
@@ -50,6 +51,7 @@ const addPost = async (req: Request, res: Response) => {
     author,
     likes,
     order,
+    publish,
     comments,
     translations,
   }
@@ -220,6 +222,7 @@ const updatePost = async (req: Request, res: Response) => {
     author,
     likes,
     order,
+    publish,
     comments,
   } = form
   const post = omitBy(
@@ -232,6 +235,7 @@ const updatePost = async (req: Request, res: Response) => {
       author,
       likes,
       order,
+      publish,
       comments,
     },
     (value) => value === undefined || value === ''

@@ -46,7 +46,7 @@ adminPostRouter.get(
 adminPostRouter.post(
   '',
   authMiddleware.verifyAccessToken,
-  authMiddleware.verifyAdmin,
+  authMiddleware.verifyUser,
   postMiddleware.addPostRules(),
   helpersMiddleware.entityValidator,
   wrapAsync(PostController.addPost)

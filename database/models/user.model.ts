@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose'
 import { ROLE } from '../../constants/role.enum'
+import { USERSTATUS } from '../../constants/user-status.enum'
 
 const UserSchema = new Schema(
   {
@@ -7,9 +8,10 @@ const UserSchema = new Schema(
     name: { type: String, maxlength: 160 },
     password: { type: String, required: true, minlength: 6, maxlength: 160 },
     date_of_birth: { type: Date, maxlength: 160 },
-    address: { type: String, maxlength: 160 },
+    address: { type: String, maxlength: 255 },
     phone: { type: String, maxlength: 20 },
     roles: { type: [String], required: true, default: [ROLE.USER] },
+    status: { type: String, required: true, default: [USERSTATUS.ACTIVE] },
     avatar: { type: String, maxlength: 1000 },
   },
   {

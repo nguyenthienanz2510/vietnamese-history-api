@@ -20,6 +20,7 @@ const PostSchema = new Schema(
     },
     likes: { type: Number, default: 0 },
     order: { type: Number, maxlength: 10 },
+    publish: { type: Boolean, default: false },
     comments: [{ type: String }],
     translations: {
       vi: {

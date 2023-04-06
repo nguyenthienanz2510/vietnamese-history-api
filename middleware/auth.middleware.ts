@@ -88,6 +88,39 @@ const verifyAdmin = async (req: Request, res: Response, next: NextFunction) => {
   )
 }
 
+const verifyManager = async (req: Request, res: Response, next: NextFunction) => {
+  const userDB: User = await UserModel.findById(req.jwtDecoded.id).lean()
+  if (userDB.roles.includes(ROLE.ADMIN) || userDB.roles.includes(ROLE.MANAGER)) {
+    return next()
+  }
+  return responseError(
+    res,
+    new ErrorHandler(STATUS.FORBIDDEN, 'Access denied!!! Role ADMIN hoặc AUTHOR mới có quyền truy cập')
+  )
+}
+
+const verifyAuthor = async (req: Request, res: Response, next: NextFunction) => {
+  const userDB: User = await UserModel.findById(req.jwtDecoded.id).lean()
+  if (userDB.roles.includes(ROLE.ADMIN) || userDB.roles.includes(ROLE.MANAGER) || userDB.roles.includes(ROLE.AUTHOR)) {
+    return next()
+  }
+  return responseError(
+    res,
+    new ErrorHandler(STATUS.FORBIDDEN, 'Access denied!!! Role ADMIN hoặc AUTHOR mới có quyền truy cập')
+  )
+}
+
+const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
+  const userDB: User = await UserModel.findById(req.jwtDecoded.id).lean()
+  if (userDB.roles.includes(ROLE.ADMIN) || userDB.roles.includes(ROLE.MANAGER) || userDB.roles.includes(ROLE.AUTHOR) ||  userDB.roles.includes(ROLE.USER)) {
+    return next()
+  }
+  return responseError(
+    res,
+    new ErrorHandler(STATUS.FORBIDDEN, 'Access denied!!! Role ADMIN hoặc AUTHOR mới có quyền truy cập')
+  )
+}
+
 const registerRules = () => {
   return [
     body('email')
@@ -119,6 +152,8 @@ const loginRules = () => {
 const authMiddleware = {
   verifyAccessToken,
   verifyAdmin,
+  verifyAuthor,
+  verifyUser,
   registerRules,
   loginRules,
   verifyRefreshToken,

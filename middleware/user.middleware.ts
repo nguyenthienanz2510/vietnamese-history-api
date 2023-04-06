@@ -21,8 +21,8 @@ const addUserRules = () => {
       .withMessage('Ngày sinh không đúng định dạng'),
     body('address')
       .if((value: any) => value !== undefined)
-      .isLength({ max: 160 })
-      .withMessage('Địa chỉ phải ít hơn 160 kí tự'),
+      .isLength({ max: 255 })
+      .withMessage('Địa chỉ phải ít hơn 255 kí tự'),
     body('phone')
       .if((value: any) => value !== undefined)
       .isLength({ max: 20 })
